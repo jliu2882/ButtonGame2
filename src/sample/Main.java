@@ -27,7 +27,6 @@ public class Main extends Application {
     private Integer timeSeconds = STARTTIME;
     private int counter = 0;
     private Label count = new Label("Score: ");
-    private int score;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -36,7 +35,6 @@ public class Main extends Application {
         root.setAlignment(Pos.CENTER);
 
         button1 = new Button("WhackAMole");
-        score = 0;
         root.add(button1,0,0);
         root.add(count,0,1);
 
@@ -46,7 +44,6 @@ public class Main extends Application {
                 randNum();
                 button1.setTranslateX(randX);
                 button1.setTranslateY(randY);
-                score++;
                 if (timeline != null) {
                     timeline.stop();
                 }
