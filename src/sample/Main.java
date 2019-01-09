@@ -37,7 +37,7 @@ public class Main extends Application {
         button1 = new Button("WhackAMole");
         root.add(button1,0,0);
         root.add(count,0,1);
-
+ 
         button1.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
