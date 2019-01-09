@@ -6,12 +6,15 @@ import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
+import javax.xml.soap.Text;
 
 public class Main extends Application {
 
@@ -23,7 +26,8 @@ public class Main extends Application {
     private Label timerLabel = new Label();
     private Integer timeSeconds = STARTTIME;
     private int counter = 0;
-    private Label count = new Label("Count: ");
+    private Label count = new Label("Score: ");
+    private int score;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -32,7 +36,9 @@ public class Main extends Application {
         root.setAlignment(Pos.CENTER);
 
         button1 = new Button("WhackAMole");
+        score = 0;
         root.add(button1,0,0);
+        root.add(count,0,1);
 
         button1.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -40,6 +46,7 @@ public class Main extends Application {
                 randNum();
                 button1.setTranslateX(randX);
                 button1.setTranslateY(randY);
+                score++;
                 if (timeline != null) {
                     timeline.stop();
                 }
@@ -58,7 +65,7 @@ public class Main extends Application {
                                         timeSeconds--;
                                         timerLabel.setText(timeSeconds.toString());
                                         button1.setOnAction(e -> {
-                                            count.setText("Count: " + Integer.toString(counter));
+                                            count.setText("Score: " + Integer.toString(counter));
                                             counter++;
                                             if (timeSeconds <= 0) {
                                                 counter--;
