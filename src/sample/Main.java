@@ -44,13 +44,21 @@ public class Main extends Application {
                 randNum();
                 button1.setTranslateX(randX);
                 button1.setTranslateY(randY);
+                count.setText("Score: " + Integer.toString(counter));
+                counter=1;
                 if (timeline != null) {
                     timeline.stop();
                 }
-                if (counter >= 0) {
-                    counter = 0;
-                    timeSeconds = STARTTIME;
-                }
+                button1.setOnAction(e -> {
+                    count.setText("Score: " + Integer.toString(counter));
+                    counter++;
+                    if (timeSeconds <= 0) {
+                        counter--;
+                    }
+                    randNum();
+                    button1.setTranslateX(randX);
+                    button1.setTranslateY(randY);
+                });
                 timerLabel.setText(timeSeconds.toString());
                 timeline = new Timeline();
                 timeline.setCycleCount(Timeline.INDEFINITE);
@@ -61,13 +69,6 @@ public class Main extends Application {
                                     public void handle(ActionEvent event) {
                                         timeSeconds--;
                                         timerLabel.setText(timeSeconds.toString());
-                                        button1.setOnAction(e -> {
-                                            count.setText("Score: " + Integer.toString(counter));
-                                            counter++;
-                                            if (timeSeconds <= 0) {
-                                                counter--;
-                                            }
-                                        });
                                         if (timeSeconds <= 0) {
                                             timeline.stop();
                                         }
