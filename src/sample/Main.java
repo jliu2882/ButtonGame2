@@ -6,27 +6,32 @@ import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Control;
 import javafx.scene.control.Label;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.scene.control.TextField;
 
-import javax.xml.soap.Text;
+import java.io.*;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Main extends Application {
 
     private Button button1;
-    private int randX;
-    private int randY;
-    private static final Integer STARTTIME = 10;
     private Timeline timeline;
-    private Label timerLabel = new Label();
-    private Integer timeSeconds = STARTTIME;
-    private int counter = 0;
-    private Label count = new Label("Score: ");
+    private Integer timeSeconds = 5;
+    private int counter = 1;
+    private Label count = new Label("Username: ");
+    private String username;
+    private TextField uname;
+    private Label highScore;
+    private boolean gameOn = true;
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -34,32 +39,66 @@ public class Main extends Application {
         Scene scene = new Scene(root, 500, 500);
         root.setAlignment(Pos.CENTER);
 
-        button1 = new Button("WhackAMole");
-        root.add(button1,0,0);
-        root.add(count,0,1);
+        GridPane highScores = new GridPane();
+        highScores.setHgap(10);
+        highScores.setVgap(10);
+        highScores.setAlignment(Pos.CENTER);
+        Label usernameHeader = new Label();
+        usernameHeader.setText("Username");
+        Label scoreHeader = new Label();
+        scoreHeader.setText("Score");
+        highScores.addRow(0, usernameHeader, scoreHeader);List<List<String>> scores = Controller.read()
+                .stream()
+                .sorted(Collections.reverseOrder(Comparator.comparing(s -> Integer.parseInt(s.get(1)))))
+                .collect(Collectors.toList());
+
+        IntStream.range(0, 3).forEach(i -> {
+            if (i < scores.size()) {
+                List<String> user = scores.get(i);
+
+                Label usernameLabel = new Label();
+                usernameLabel.setText(user.get(0));
+
+                Label scoreLabel = new Label();
+                scoreLabel.setText(user.get(1));
+
+                highScores.addRow(i + 1, usernameLabel, scoreLabel);
+            }
+        });
+
+
+
+        username = "test";
+        uname = new TextField();
+        uname.setPromptText("Enter your username here");
+
+        button1 = new Button();
+        button1.setStyle("-fx-graphic: url('https://image.flaticon.com/icons/png/128/235/235368.png');");
+        button1.setVisible(false);
  
         button1.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                randNum();
-                button1.setTranslateX(randX);
-                button1.setTranslateY(randY);
                 count.setText("Score: " + Integer.toString(counter));
-                counter=1;
                 if (timeline != null) {
                     timeline.stop();
                 }
                 button1.setOnAction(e -> {
-                    count.setText("Score: " + Integer.toString(counter));
-                    counter++;
-                    if (timeSeconds <= 0) {
-                        counter--;
+                    if (timeSeconds > 0) {
+                        counter++;
+                        moleRun();
                     }
-                    randNum();
-                    button1.setTranslateX(randX);
-                    button1.setTranslateY(randY);
+                    else if(gameOn){
+                        addScores();
+                        gameOn = false;
+                    }
+                    else{
+
+                        counter = 1;
+                        gameOn = true;
+                    }
+                    count.setText("Score: " + Integer.toString(counter));
                 });
-                timerLabel.setText(timeSeconds.toString());
                 timeline = new Timeline();
                 timeline.setCycleCount(Timeline.INDEFINITE);
                 timeline.getKeyFrames().add(
@@ -68,7 +107,6 @@ public class Main extends Application {
                                     @Override
                                     public void handle(ActionEvent event) {
                                         timeSeconds--;
-                                        timerLabel.setText(timeSeconds.toString());
                                         if (timeSeconds <= 0) {
                                             timeline.stop();
                                         }
@@ -77,15 +115,82 @@ public class Main extends Application {
                 timeline.playFromStart();
             }
         });
+
+
+        root.add(button1,0,0);
+        root.add(count,0,1);
+        root.add(uname,1,1);
+        root.add(highScore,1,2);
         primaryStage.setTitle("Button Game");
         primaryStage.setScene(scene);
         primaryStage.show();
+
+        scene.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) {
+                //opens the game
+                button1.setVisible(true);
+                username = uname.getText();
+                uname.setVisible(false);
+                highScore.setVisible(false);
+
+
+            }
+        });
     }
 
-    public void randNum() {
-        randX = (int) (Math.random() * 500) - 250;
-        randY = (int) (Math.random() * 500) - 250;
+    public void moleRun() {
+        button1.setTranslateX((int) (Math.random() * 500) - 250);
+        button1.setTranslateY((int) (Math.random() * 500) - 250);
     }
+
+    public void addScores() {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("src/sample/scores.csv",true))) {
+            bw.newLine();
+            bw.write(username);
+            bw.write(",");
+            bw.write(String.valueOf(counter));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void terminate() {
+        addScores();
+
+        GridPane highScores = new GridPane();
+        highScores.setHgap(10);
+        highScores.setVgap(10);
+        highScores.setAlignment(Pos.CENTER);
+
+        // TODO: Could be fetched through CSVUtilities
+        Label usernameHeader = new Label();
+        usernameHeader.setText("Username");
+
+        Label scoreHeader = new Label();
+        scoreHeader.setText("Score");
+
+        highScores.addRow(0, usernameHeader, scoreHeader);
+
+        List<List<String>> scores = Controller.read()
+                .stream()
+                .sorted(Collections.reverseOrder(Comparator.comparing(s -> Integer.parseInt(s.get(1)))))
+                .collect(Collectors.toList());
+
+        IntStream.range(0, 3).forEach(i -> {
+            if (i < scores.size()) {
+                List<String> user = scores.get(i);
+
+                Label usernameLabel = new Label();
+                usernameLabel.setText(user.get(0));
+
+                Label scoreLabel = new Label();
+                scoreLabel.setText(user.get(1));
+
+                highScores.addRow(i + 1, usernameLabel, scoreLabel);
+            }
+        });
+        //root.getChildren().add(highScores);
+    }
+
 
     public static void main(String[] args) {
         launch(args);
